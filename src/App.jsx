@@ -10,6 +10,7 @@ import Dashboard from "./pages/postlogin/dashboard/index.jsx";
 import Landing from "./pages/prelogin/Landing";
 import Login from "./pages/prelogin/auth/Login";
 import Signup from "./pages/prelogin/auth/Signup";
+import PostloginLayout from "./layouts/PostloginLayout";
 import { useAuthStore } from "./hooks/useAuthStore";
 
 const ProtectedRoutes = () => {
@@ -25,7 +26,9 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route element={<ProtectedRoutes />}>
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route element={<PostloginLayout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>

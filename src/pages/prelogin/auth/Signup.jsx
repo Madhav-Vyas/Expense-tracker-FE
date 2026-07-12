@@ -25,6 +25,7 @@ import { signup } from "../../../api/authAPIs";
 function Signup() {
   const { theme, toggleTheme } = useAppStore();
   const setToken = useAuthStore((state) => state.setToken);
+  const setUser = useAuthStore((state) => state.setUser);
   const navigate = useNavigate();
   const methods = useForm({
     resolver: zodResolver(signupSchema),
@@ -39,6 +40,7 @@ function Signup() {
     mutationFn: signup,
     onSuccess: (response) => {
       setToken(response.token);
+      setUser(response?.data?.user);
       navigate("/dashboard");
     },
     onError: (error) => {
