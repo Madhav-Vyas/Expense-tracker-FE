@@ -17,6 +17,7 @@ export function DashboardNavbar() {
   const navigate = useNavigate();
   const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const { theme, toggleTheme } = useAppStore();
 
   const handleLogout = () => {
@@ -39,15 +40,15 @@ export function DashboardNavbar() {
     <header className="relative z-10 border-b border-slate-500/10 bg-slate-950/20 backdrop-blur-md">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2 group">
+        <Link
+          to={isAuthenticated ? "/dashboard" : "/"}
+          className="flex items-center gap-2 group"
+        >
           <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-violet-600 to-cyan-500 flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform">
             <IconTrendingUp size={20} className="stroke-[2.5]" />
           </div>
           <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
             FinFlow
-          </span>
-          <span className="px-2 py-0.5 rounded bg-violet-500/10 text-violet-400 text-[10px] font-bold tracking-wide uppercase border border-violet-500/20">
-            User Portal
           </span>
         </Link>
 

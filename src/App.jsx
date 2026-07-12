@@ -11,11 +11,11 @@ import Landing from "./pages/prelogin/Landing";
 import Login from "./pages/prelogin/auth/Login";
 import Signup from "./pages/prelogin/auth/Signup";
 import PostloginLayout from "./layouts/PostloginLayout";
-import { useAuthStore } from "./hooks/useAuthStore";
+import useAuthStore from "./hooks/useAuthStore";
 
 const ProtectedRoutes = () => {
-  const { isAuthenticated } = useAuthStore();
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" />;
+  const token = useAuthStore((state) => state.token);
+  return token ? <Outlet /> : <Navigate to="/login" />;
 };
 
 function App() {
