@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/* Custom styles and scrollbar overrides if needed */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  scroll-behavior: smooth;
+}
+
+/* Base custom classes if needed */
+@layer base {
+  body {
+    @apply bg-slate-950 text-slate-100 antialiased;
+  }
+}
