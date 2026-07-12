@@ -17,7 +17,7 @@ import {
   IconArrowUpRight,
   IconArrowDownLeft
 } from '@tabler/icons-react';
-import { useAppStore } from '../store/useAppStore';
+import { useAppStore } from '../../store/useAppStore';
 
 function Landing() {
   const { backendStatus, setBackendStatus, theme, toggleTheme } = useAppStore();

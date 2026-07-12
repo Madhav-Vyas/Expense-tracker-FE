@@ -14,7 +14,7 @@ const useAuthStore = create(
       logout: () => set({ token: null }),
     }),
     {
-      name: "auth-storage", // required name option for persist middleware
+      name: "auth-storage", // required name configuration for persist middleware
     }
   )
 );
