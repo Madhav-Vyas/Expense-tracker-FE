@@ -6,7 +6,7 @@ const headers = {
   "Content-Type": "application/json",
 };
 
-const axiosInstance = axios.create({
+export const axiosInstance = axios.create({
   baseURL: API_URL,
   headers,
   withCredentials: true, // sending cookies to backend

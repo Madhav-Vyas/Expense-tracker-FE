@@ -39,7 +39,7 @@ function Login() {
   const loginMutation = useMutation({
     mutationFn: login,
     onSuccess: (data) => {
-      debugger;
+     
       setToken(data.token);
       setUser(data?.data?.user);
       navigate("/dashboard");
