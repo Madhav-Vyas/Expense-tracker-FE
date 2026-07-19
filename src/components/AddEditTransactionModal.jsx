@@ -9,15 +9,20 @@ import {
   IconCoin,
   IconTrendingDown,
   IconTrendingUp,
+  IconTag,
 } from "@tabler/icons-react";
 import { ControlledInput } from "./controlled";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addTransaction } from "../api/transactionAPIs";
+import Drawer from "@mui/material/Drawer";
 
 // Form Validation Schema using Zod
 const transactionSchema = z.object({
   type: z.enum(["income", "expense"], {
     required_error: "Transaction type is required",
+  }),
+  category: z.enum(["Food", "Travel", "Entertainment", "Salary", "Investment", "Other"], {
+    required_error: "Category is required",
   }),
   amount: z.coerce
     .number({ invalid_type_error: "Amount must be a number" })
@@ -45,6 +50,7 @@ const AddEditTransactionModal = ({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
       type: "expense",
+      category: "Other",
       amount: "",
       date: new Date().toISOString().split("T")[0],
       description: "",
@@ -67,6 +73,7 @@ const AddEditTransactionModal = ({
       if (transaction) {
         reset({
           type: transaction.type || "expense",
+          category: transaction.category || "Other",
           amount: transaction.amount || "",
           date: transaction.date
             ? new Date(transaction.date).toISOString().split("T")[0]
@@ -76,6 +83,7 @@ const AddEditTransactionModal = ({
       } else {
         reset({
           type: "expense",
+          category: "Other",
           amount: "",
           date: new Date().toISOString().split("T")[0],
           description: "",
@@ -101,6 +109,7 @@ const AddEditTransactionModal = ({
     mutationFn: (val) => addTransaction(val),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["allTrans"] });
       onClose();
     },
     onError: (err) => console.log(err),
@@ -117,18 +126,22 @@ const AddEditTransactionModal = ({
 
   const isEditMode = !!transaction;
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-slate-950/85 backdrop-blur-md transition-opacity duration-300 animate-fade-in"
-        onClick={onClose}
-      />
-
-      {/* Modal Container */}
-      <div className="relative w-full max-w-md bg-slate-900 border border-slate-800/80 rounded-2xl p-6 shadow-2xl z-10 transition-all duration-300 animate-scale-up">
+    <Drawer
+      anchor="right"
+      open={isOpen}
+      onClose={onClose}
+      slotProps={{
+        backdrop: {
+          className: "bg-slate-950/40!",
+          style: { backgroundColor: "rgba(2, 6, 23, 0.4)" }
+        },
+        paper: {
+          className: "w-full max-w-md bg-slate-900! border-l border-slate-800/80! p-6 shadow-2xl flex flex-col h-full overflow-y-auto text-white relative",
+          style: { backgroundColor: "#0f172a", color: "#fff", borderColor: "#1e293b" }
+        }
+      }}
+    >
         {/* Decorative Top Glow */}
         <div
           className={`absolute -top-16 left-1/2 -translate-x-1/2 w-64 h-32 rounded-full blur-[60px] opacity-40 pointer-events-none ${
@@ -224,15 +237,56 @@ const AddEditTransactionModal = ({
               )}
             </div>
 
-            {/* Amount Field */}
-            <ControlledInput
-              name="amount"
-              label="Amount"
-              type="number"
-              step="any"
-              placeholder="0.00"
-              icon={IconCoin}
-            />
+            {/* Side-by-side Amount and Category */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Amount Field */}
+              <ControlledInput
+                name="amount"
+                label="Amount"
+                type="number"
+                step="any"
+                placeholder="0.00"
+                icon={IconCoin}
+                autoFocus
+              />
+
+              {/* Category Dropdown Field */}
+              <div className="space-y-1.5 w-full">
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+                  Category
+                </label>
+                <div className="relative">
+                  <div className="absolute top-3.5 left-3.5 flex items-center pointer-events-none text-slate-500">
+                    <IconTag size={18} />
+                  </div>
+                  <select
+                    {...methods.register("category")}
+                    className={`w-full pl-10 pr-10 py-3 bg-slate-950 border ${
+                      errors.category
+                        ? "border-rose-500 focus:ring-rose-500/50"
+                        : "border-slate-800 focus:border-violet-500 focus:ring-violet-500"
+                    } rounded-xl focus:ring-1 text-white focus:outline-none transition-all appearance-none cursor-pointer text-sm`}
+                  >
+                    {["Food", "Travel", "Entertainment", "Salary", "Investment", "Other"].map((cat) => (
+                      <option key={cat} value={cat} className="bg-slate-950 text-white">
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                  {/* Custom dropdown select chevron arrow */}
+                  <div className="absolute top-4 right-3.5 flex items-center pointer-events-none text-slate-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
+                </div>
+                {errors.category && (
+                  <span className="text-[11px] text-rose-500 block mt-1 font-medium">
+                    {errors.category.message}
+                  </span>
+                )}
+              </div>
+            </div>
 
             {/* Date Field */}
             <ControlledInput
@@ -296,8 +350,7 @@ const AddEditTransactionModal = ({
             </div>
           </form>
         </FormProvider>
-      </div>
-    </div>
+    </Drawer>
   );
 };
 

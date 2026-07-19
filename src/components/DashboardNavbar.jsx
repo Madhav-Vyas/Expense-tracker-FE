@@ -55,16 +55,16 @@ export function DashboardNavbar() {
         {/* Navigation Links */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-400">
           <a
-            href="#overview"
+            onClick={() => navigate("/dashboard")}
             className="text-white hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-500/5"
           >
             <IconLayoutDashboard size={16} /> Overview
           </a>
           <a
-            href="#wallet"
+            onClick={() => navigate("/all-transactions")}
             className="hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors"
           >
-            <IconWallet size={16} /> Wallets
+            <IconWallet size={16} /> All Transactions
           </a>
           <a
             href="#analytics"
