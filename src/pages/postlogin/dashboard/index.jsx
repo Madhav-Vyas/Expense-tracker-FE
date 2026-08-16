@@ -8,12 +8,13 @@ import {
   IconArrowDownRight,
 } from "@tabler/icons-react";
 import AddEditTransactionModal from "../../../components/AddEditTransactionModal";
+import QuickTransactionBar from "../../../components/QuickTransactionBar";
 import LatestTransactionTable from "./components/LatestTransactionTable";
 
 /**
  * Dashboard Component
  * Designed with a premium grid layout consisting of a header row,
- * metrics analytics cards, and a full-width recent transactions list.
+ * metrics analytics cards, instant quick-log bar, and recent transactions list.
  */
 const Dashboard = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -50,15 +51,15 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="w-full space-y-8 animate-fade-in">
+    <div className="w-full space-y-7 animate-fade-in">
       {/* Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-1">
         <div className="space-y-1">
           <h1 className="text-3xl font-extrabold text-white tracking-tight">
             Dashboard
           </h1>
           <p className="text-slate-400 text-sm">
-            Welcome back! Here is a summary of your financial flow.
+            Welcome back! Here is a real-time summary of your financial flow.
           </p>
         </div>
 
@@ -69,9 +70,14 @@ const Dashboard = () => {
             className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-cyan-500 hover:from-violet-500 hover:to-cyan-400 text-white font-semibold rounded-xl text-xs shadow-lg shadow-violet-600/15 hover:shadow-violet-600/25 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
           >
             <IconPlus size={14} className="stroke-[3]" />
-            <span>Add Transaction</span>
+            <span>Full Form Entry</span>
           </button>
         </div>
+      </div>
+
+      {/* Quick Transaction Bar */}
+      <div className="w-full">
+        <QuickTransactionBar />
       </div>
 
       {/* Analytics Cards Grid */}

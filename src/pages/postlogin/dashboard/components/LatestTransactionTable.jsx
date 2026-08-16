@@ -7,11 +7,12 @@ import {
   IconHistory,
   IconInbox,
 } from "@tabler/icons-react";
+import { getCategoryMeta } from "../../../../utils/autoCategorizer";
 
 /**
  * LatestTransactionTable Component
  * Shows recent transactions in a modern, row-based dark card layout
- * with color coding for income (green) and expense (red).
+ * with color-coded categories and visual transaction indicators.
  */
 const LatestTransactionTable = () => {
   const transactionsQuery = useQuery({
@@ -21,11 +22,13 @@ const LatestTransactionTable = () => {
 
   const { data, isLoading, error } = transactionsQuery;
 
-  // Format date helper (e.g. "Jul 13, 2026")
+  // Format date helper (e.g. "Jul 13, 2026 • 2:45 PM")
   const formatDate = (dateString) => {
     try {
-      const options = { year: "numeric", month: "short", day: "numeric" };
-      return new Date(dateString).toLocaleDateString(undefined, options);
+      const d = new Date(dateString);
+      const datePart = d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+      const timePart = d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+      return `${datePart} • ${timePart}`;
     } catch {
       return dateString;
     }
@@ -40,18 +43,23 @@ const LatestTransactionTable = () => {
   };
 
   return (
-    <div className="mt-10 w-full bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 shadow-xl backdrop-blur-md relative overflow-hidden">
+    <div className="w-full bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 shadow-xl backdrop-blur-md relative overflow-hidden">
       {/* Decorative internal glow */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-violet-600/5 blur-2xl -z-10 rounded-full" />
 
       {/* Header */}
-      <div className="flex items-center gap-2 mb-6 pb-4 border-b border-slate-800/50">
-        <span className="p-1.5 rounded-lg bg-violet-500/10 text-violet-400">
-          <IconHistory size={18} />
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-800/50">
+        <div className="flex items-center gap-2">
+          <span className="p-1.5 rounded-lg bg-violet-500/10 text-violet-400">
+            <IconHistory size={18} />
+          </span>
+          <h2 className="text-lg font-bold text-white tracking-tight">
+            Latest Transactions
+          </h2>
+        </div>
+        <span className="text-xs text-slate-500 font-medium">
+          Showing recent 5
         </span>
-        <h2 className="text-lg font-bold text-white tracking-tight">
-          Latest Transactions
-        </h2>
       </div>
 
       {/* Loading state */}
@@ -84,7 +92,7 @@ const LatestTransactionTable = () => {
               No activity yet
             </p>
             <p className="text-xs text-slate-500 mt-1 max-w-[200px]">
-              Add your first income or expense to see it listed here.
+              Use the Quick Log bar above to record your first transaction!
             </p>
           </div>
         )}
@@ -97,6 +105,7 @@ const LatestTransactionTable = () => {
           <div className="space-y-1 divide-y divide-slate-800/30">
             {data.data.transactions.slice(0, 5).map((transaction) => {
               const isExpense = transaction.type === "expense";
+              const categoryMeta = getCategoryMeta(transaction.category);
               return (
                 <div
                   key={transaction._id}
@@ -105,7 +114,7 @@ const LatestTransactionTable = () => {
                   {/* Left part: Icon & Details */}
                   <div className="flex items-center gap-3.5">
                     <div
-                      className={`w-9 h-9 rounded-lg flex items-center justify-center transition-transform group-hover:scale-[1.03] ${
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-[1.03] ${
                         isExpense
                           ? "bg-rose-500/10 text-rose-400 border border-rose-500/10"
                           : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/10"
@@ -118,12 +127,19 @@ const LatestTransactionTable = () => {
                       )}
                     </div>
 
-                    <div className="text-left">
-                      <p className="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors capitalize truncate max-w-[200px] sm:max-w-[300px]">
-                        {transaction.description ||
-                          (isExpense ? "Expense" : "Income")}
-                      </p>
-                      <p className="text-[10px] text-slate-500 mt-0.5">
+                    <div className="text-left space-y-0.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-sm font-bold text-slate-200 group-hover:text-white transition-colors capitalize truncate max-w-[180px] sm:max-w-[280px]">
+                          {transaction.description ||
+                            (isExpense ? "Expense" : "Income")}
+                        </p>
+                        {/* Category Badge */}
+                        <span className={`text-[10px] px-2 py-0.5 rounded-md font-semibold border flex items-center gap-1 ${categoryMeta.badgeBg}`}>
+                          <span>{categoryMeta.icon}</span>
+                          <span>{transaction.category || "Other"}</span>
+                        </span>
+                      </div>
+                      <p className="text-[10px] text-slate-500 font-medium">
                         {formatDate(transaction.date)}
                       </p>
                     </div>
@@ -132,7 +148,7 @@ const LatestTransactionTable = () => {
                   {/* Right part: Amount */}
                   <div className="text-right pl-4">
                     <span
-                      className={`text-sm font-bold tracking-tight ${
+                      className={`text-sm font-extrabold tracking-tight ${
                         isExpense ? "text-rose-400" : "text-emerald-400"
                       }`}
                     >

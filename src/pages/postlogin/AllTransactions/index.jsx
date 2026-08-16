@@ -12,11 +12,11 @@ import {
   IconPlus,
 } from "@tabler/icons-react";
 import AddEditTransactionModal from "../../../components/AddEditTransactionModal";
+import QuickTransactionBar from "../../../components/QuickTransactionBar";
+import { getCategoryMeta } from "../../../utils/autoCategorizer";
 
 /**
- * AllTransactions Component
- * Renders all transactions with a premium table, filtering indicators,
- * and page-by-page offset pagination.
+ * Debounce hook for smooth search input filtering
  */
 export function useDebounce(value, delay = 400) {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -26,13 +26,20 @@ export function useDebounce(value, delay = 400) {
   }, [value, delay]);
   return debouncedValue;
 }
+
+/**
+ * AllTransactions Component
+ * Premium ledger with fast quick-add bar, responsive filters, category pills,
+ * and page-by-page offset pagination.
+ */
 const AllTransactions = () => {
   const [page, setPage] = useState(1);
-  const limit = 8; // Showing 8 transactions per page for a dedicated history view
+  const limit = 8; // 8 transactions per page
   const [type, setType] = useState("");
   const [search, setSearch] = useState("");
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const debouncedSearch = useDebounce(search, 400);
+
   const allTransQuery = useQuery({
     queryKey: ["allTrans", page, type, debouncedSearch],
     queryFn: () =>
@@ -48,16 +55,26 @@ const AllTransactions = () => {
     setType(newType);
     setPage(1);
   };
+
   const handleSearchChange = (e) => {
     setSearch(e.target.value);
-
     setPage(1);
   };
-  // Format date helper (e.g. "Jul 13, 2026")
+
+  // Format date helper (e.g. "Jul 13, 2026 • 3:20 PM")
   const formatDate = (dateString) => {
     try {
-      const options = { year: "numeric", month: "short", day: "numeric" };
-      return new Date(dateString).toLocaleDateString(undefined, options);
+      const d = new Date(dateString);
+      const datePart = d.toLocaleDateString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+      const timePart = d.toLocaleTimeString(undefined, {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      return `${datePart} • ${timePart}`;
     } catch {
       return dateString;
     }
@@ -72,18 +89,18 @@ const AllTransactions = () => {
   };
 
   return (
-    <div className="w-full space-y-6 animate-fade-in">
+    <div className="w-full space-y-7 animate-fade-in">
       {/* Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-1">
         <div className="space-y-1">
           <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-violet-500/10 text-violet-400">
-              <IconReceipt size={28} />
+            <span className="p-2 rounded-xl bg-violet-500/10 text-violet-400 border border-violet-500/20">
+              <IconReceipt size={24} />
             </span>
             Transaction Ledger
           </h1>
           <p className="text-slate-400 text-sm">
-            A complete history of your incoming and outgoing transactions.
+            A complete, automatically categorized history of your incoming and outgoing finances.
           </p>
         </div>
 
@@ -94,9 +111,14 @@ const AllTransactions = () => {
             className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-cyan-500 hover:from-violet-500 hover:to-cyan-400 text-white font-semibold rounded-xl text-xs shadow-lg shadow-violet-600/15 hover:shadow-violet-600/25 transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer"
           >
             <IconPlus size={14} className="stroke-[3]" />
-            <span>Add Transaction</span>
+            <span>Full Form Entry</span>
           </button>
         </div>
+      </div>
+
+      {/* Instant Quick-Add Bar */}
+      <div className="w-full">
+        <QuickTransactionBar />
       </div>
 
       {/* Main Table Card */}
@@ -113,10 +135,10 @@ const AllTransactions = () => {
             </span>
             <input
               type="text"
-              placeholder="Search by description..."
+              placeholder="Search by title..."
               value={search}
               onChange={handleSearchChange}
-              className="w-full pl-10 pr-4 py-2 border border-slate-800 bg-slate-950/80 text-white rounded-xl focus:border-violet-500 focus:ring-1 focus:ring-violet-500/50 focus:outline-none transition-all placeholder-slate-600 text-sm"
+              className="w-full pl-10 pr-4 py-2.5 border border-slate-800 bg-slate-950/80 text-white rounded-xl focus:border-violet-500 focus:ring-1 focus:ring-violet-500/50 focus:outline-none transition-all placeholder-slate-600 text-sm font-medium"
             />
           </div>
 
@@ -136,7 +158,7 @@ const AllTransactions = () => {
               onClick={() => handleTypeChange("income")}
               className={`px-4 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${
                 type === "income"
-                  ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/10 shadow-sm"
+                  ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/20 shadow-sm"
                   : "text-slate-400 hover:text-emerald-400"
               }`}
             >
@@ -146,7 +168,7 @@ const AllTransactions = () => {
               onClick={() => handleTypeChange("expense")}
               className={`px-4 py-2 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer ${
                 type === "expense"
-                  ? "bg-rose-500/10 text-rose-400 border border-rose-500/10 shadow-sm"
+                  ? "bg-rose-500/15 text-rose-400 border border-rose-500/20 shadow-sm"
                   : "text-slate-400 hover:text-rose-400"
               }`}
             >
@@ -187,7 +209,7 @@ const AllTransactions = () => {
               No transactions recorded
             </p>
             <p className="text-xs text-slate-500 mt-1 max-w-[240px]">
-              Once you add an income or expense, your ledger will update here.
+              Use the Quick Log bar above to record an expense or income.
             </p>
           </div>
         )}
@@ -198,6 +220,7 @@ const AllTransactions = () => {
             <div className="space-y-1 divide-y divide-slate-800/30">
               {transactions.map((transaction) => {
                 const isExpense = transaction.type === "expense";
+                const categoryMeta = getCategoryMeta(transaction.category);
                 return (
                   <div
                     key={transaction._id}
@@ -206,7 +229,7 @@ const AllTransactions = () => {
                     {/* Left part: Icon & Details */}
                     <div className="flex items-center gap-4">
                       <div
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-[1.03] ${
+                        className={`w-11 h-11 rounded-xl flex items-center justify-center transition-transform group-hover:scale-[1.03] ${
                           isExpense
                             ? "bg-rose-500/10 text-rose-400 border border-rose-500/10"
                             : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/10"
@@ -222,12 +245,19 @@ const AllTransactions = () => {
                         )}
                       </div>
 
-                      <div className="text-left">
-                        <p className="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors capitalize truncate max-w-[180px] sm:max-w-[320px]">
-                          {transaction.description ||
-                            (isExpense ? "Expense" : "Income")}
-                        </p>
-                        <p className="text-[10px] text-slate-500 mt-0.5">
+                      <div className="text-left space-y-0.5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <p className="text-sm font-bold text-slate-200 group-hover:text-white transition-colors capitalize truncate max-w-[180px] sm:max-w-[320px]">
+                            {transaction.description ||
+                              (isExpense ? "Expense" : "Income")}
+                          </p>
+                          {/* Category Tag */}
+                          <span className={`text-[10px] px-2 py-0.5 rounded-md font-semibold border flex items-center gap-1 ${categoryMeta.badgeBg}`}>
+                            <span>{categoryMeta.icon}</span>
+                            <span>{transaction.category || "Other"}</span>
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-slate-500 font-medium">
                           {formatDate(transaction.date)}
                         </p>
                       </div>
@@ -236,7 +266,7 @@ const AllTransactions = () => {
                     {/* Right part: Amount */}
                     <div className="text-right pl-4">
                       <span
-                        className={`text-sm font-bold tracking-tight ${
+                        className={`text-base font-extrabold tracking-tight ${
                           isExpense ? "text-rose-400" : "text-emerald-400"
                         }`}
                       >
