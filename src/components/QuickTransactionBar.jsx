@@ -55,7 +55,7 @@ export default function QuickTransactionBar({ onTransactionAdded }) {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["allTrans"] });
       queryClient.invalidateQueries({ queryKey: ["analytics"] });
-      
+
       // Visual feedback
       setJustAdded(true);
       setTimeout(() => setJustAdded(false), 2000);
@@ -113,30 +113,30 @@ export default function QuickTransactionBar({ onTransactionAdded }) {
     <div className="w-full relative group">
       {/* Background ambient glow */}
       <div
-        className={`absolute -inset-0.5 rounded-2xl blur-lg opacity-40 transition-all duration-500 ${
+        className={`absolute -inset-0.5 rounded-3xl blur-lg opacity-30 dark:opacity-40 transition-all duration-500 ${
           selectedType === "income"
-            ? "bg-gradient-to-r from-emerald-500/30 to-teal-500/20"
-            : "bg-gradient-to-r from-violet-600/30 to-rose-500/20"
+            ? "bg-gradient-to-r from-emerald-500/20 to-teal-500/20"
+            : "bg-gradient-to-r from-violet-500/20 to-rose-500/20"
         }`}
       />
 
-      <div className="relative w-full bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 hover:border-slate-700/80 rounded-2xl p-4 sm:p-5 shadow-2xl transition-all">
+      <div className="relative w-full bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/90 dark:border-slate-800/80 hover:border-slate-300 dark:hover:border-slate-700/80 rounded-2xl p-4 sm:p-5 shadow-sm dark:shadow-2xl transition-all">
         {/* Top Header Bar inside card */}
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="flex items-center gap-2">
-            <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-violet-500/10 text-violet-400 border border-violet-500/20">
+            <span className="flex items-center justify-center w-6 h-6 rounded-lg bg-emerald-500/10 dark:bg-violet-500/10 text-emerald-600 dark:text-violet-400 border border-emerald-500/20 dark:border-violet-500/20">
               <IconBolt size={14} className="stroke-[2.5]" />
             </span>
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-800 dark:text-slate-300">
               Quick Log
             </span>
-            <span className="text-[11px] text-slate-500 hidden sm:inline">
+            <span className="text-[11px] text-slate-500 hidden sm:inline font-medium">
               • Auto-categorized & timestamped to now
             </span>
           </div>
 
           {/* Type Toggle: Expense / Income */}
-          <div className="flex items-center bg-slate-950 p-0.5 rounded-lg border border-slate-800">
+          <div className="flex items-center bg-slate-100 dark:bg-slate-950 p-0.5 rounded-lg border border-slate-200 dark:border-slate-800">
             <button
               type="button"
               onClick={() => {
@@ -145,8 +145,8 @@ export default function QuickTransactionBar({ onTransactionAdded }) {
               }}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
                 selectedType === "expense"
-                  ? "bg-rose-500/15 text-rose-400 border border-rose-500/30 shadow-sm"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 shadow-xs"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
               }`}
             >
               <IconTrendingDown size={13} />
@@ -160,8 +160,8 @@ export default function QuickTransactionBar({ onTransactionAdded }) {
               }}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
                 selectedType === "income"
-                  ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-sm"
-                  : "text-slate-400 hover:text-slate-200"
+                  ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 shadow-xs"
+                  : "text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
               }`}
             >
               <IconTrendingUp size={13} />
@@ -184,13 +184,13 @@ export default function QuickTransactionBar({ onTransactionAdded }) {
               }}
               onKeyDown={handleKeyDown}
               placeholder="What was this for? (e.g. Starbucks, Uber, Monthly Salary)"
-              className="w-full bg-slate-950/90 text-white placeholder-slate-500 text-sm font-medium px-4 py-3 rounded-xl border border-slate-800 focus:border-violet-500 focus:ring-1 focus:ring-violet-500/50 focus:outline-none transition-all"
+              className="w-full bg-slate-50 dark:bg-slate-950/90 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-sm font-medium px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 focus:outline-none transition-all"
             />
           </div>
 
           {/* Amount Input */}
           <div className="w-full sm:w-40 relative">
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 font-bold text-sm pointer-events-none">
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 font-bold text-sm pointer-events-none">
               $
             </span>
             <input
@@ -200,7 +200,7 @@ export default function QuickTransactionBar({ onTransactionAdded }) {
               onChange={(e) => setAmount(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="0.00"
-              className="w-full bg-slate-950/90 text-white font-bold text-sm pl-8 pr-3 py-3 rounded-xl border border-slate-800 focus:border-violet-500 focus:ring-1 focus:ring-violet-500/50 focus:outline-none transition-all"
+              className="w-full bg-slate-50 dark:bg-slate-950/90 text-slate-900 dark:text-white font-bold text-sm pl-8 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 focus:bg-white dark:focus:bg-slate-950 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 focus:outline-none transition-all"
             />
           </div>
 
@@ -209,25 +209,25 @@ export default function QuickTransactionBar({ onTransactionAdded }) {
             <button
               type="button"
               onClick={() => setShowCategoryPicker(!showCategoryPicker)}
-              className={`w-full sm:w-auto flex items-center justify-between sm:justify-start gap-2 px-3.5 py-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer select-none ${
+              className={`w-full sm:w-auto flex items-center justify-between sm:justify-start gap-2 px-3.5 py-2.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer select-none ${
                 currentCategoryMeta.badgeBg
-              } hover:brightness-110`}
+              } hover:brightness-105`}
               title="Click to change category"
             >
               <span className="text-base">{currentCategoryMeta.icon}</span>
-              <span className="truncate max-w-[110px]">{currentCategoryMeta.label}</span>
-              <IconSparkles size={13} className="text-amber-400 animate-pulse" />
+              <span className="truncate max-w-[110px] text-slate-800 dark:text-slate-200">{currentCategoryMeta.label}</span>
+              <IconSparkles size={13} className="text-amber-500 animate-pulse" />
             </button>
 
             {/* Category Dropdown Popover */}
             {showCategoryPicker && (
-              <div className="absolute right-0 bottom-full sm:bottom-auto sm:top-full mb-2 sm:mb-0 sm:mt-2 w-64 bg-slate-950 border border-slate-800 rounded-xl p-2 shadow-2xl z-50 animate-fade-in">
-                <div className="flex items-center justify-between px-2 py-1 mb-1 border-b border-slate-800">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase">Select Category</span>
+              <div className="absolute right-0 bottom-full sm:bottom-auto sm:top-full mb-2 sm:mb-0 sm:mt-2 w-64 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl p-2 shadow-xl z-50 animate-fade-in">
+                <div className="flex items-center justify-between px-2 py-1 mb-1 border-b border-slate-100 dark:border-slate-800">
+                  <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 uppercase">Select Category</span>
                   <button
                     type="button"
                     onClick={() => setShowCategoryPicker(false)}
-                    className="text-slate-500 hover:text-white p-0.5"
+                    className="text-slate-400 hover:text-slate-700 dark:hover:text-white p-0.5"
                   >
                     <IconX size={14} />
                   </button>
@@ -244,8 +244,8 @@ export default function QuickTransactionBar({ onTransactionAdded }) {
                       }}
                       className={`flex items-center gap-1.5 p-2 rounded-lg text-left text-xs font-medium transition-all ${
                         selectedCategory === cat.id
-                          ? "bg-violet-600/20 text-violet-300 border border-violet-500/30"
-                          : "text-slate-300 hover:bg-slate-900"
+                          ? "bg-violet-50 dark:bg-violet-600/20 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-500/30"
+                          : "text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900"
                       }`}
                     >
                       <span>{cat.icon}</span>
@@ -261,7 +261,7 @@ export default function QuickTransactionBar({ onTransactionAdded }) {
           <button
             type="submit"
             disabled={addMutation.isPending}
-            className={`w-full sm:w-auto px-5 py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg transition-all cursor-pointer ${
+            className={`w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 shadow-md transition-all cursor-pointer ${
               justAdded
                 ? "bg-emerald-600 text-white shadow-emerald-600/20"
                 : selectedType === "income"
@@ -287,7 +287,7 @@ export default function QuickTransactionBar({ onTransactionAdded }) {
 
         {/* Error message */}
         {errorMsg && (
-          <p className="text-[11px] font-semibold text-rose-400 mt-2 animate-fade-in">
+          <p className="text-[11px] font-semibold text-rose-500 dark:text-rose-400 mt-2 animate-fade-in">
             ⚠️ {errorMsg}
           </p>
         )}

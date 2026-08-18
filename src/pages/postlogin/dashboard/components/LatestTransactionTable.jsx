@@ -11,7 +11,7 @@ import { getCategoryMeta } from "../../../../utils/autoCategorizer";
 
 /**
  * LatestTransactionTable Component
- * Shows recent transactions in a modern, row-based dark card layout
+ * Shows recent transactions in a modern, row-based card layout
  * with color-coded categories and visual transaction indicators.
  */
 const LatestTransactionTable = () => {
@@ -43,17 +43,17 @@ const LatestTransactionTable = () => {
   };
 
   return (
-    <div className="w-full bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 shadow-xl backdrop-blur-md relative overflow-hidden">
+    <div className="w-full bg-white/80 dark:bg-slate-900/40 border border-slate-200/90 dark:border-slate-800/80 rounded-2xl p-6 shadow-sm dark:shadow-xl backdrop-blur-md relative overflow-hidden transition-colors duration-200">
       {/* Decorative internal glow */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-violet-600/5 blur-2xl -z-10 rounded-full" />
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-800/50">
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100 dark:border-slate-800/50">
         <div className="flex items-center gap-2">
-          <span className="p-1.5 rounded-lg bg-violet-500/10 text-violet-400">
+          <span className="p-1.5 rounded-lg bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-200 dark:border-violet-500/20">
             <IconHistory size={18} />
           </span>
-          <h2 className="text-lg font-bold text-white tracking-tight">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white tracking-tight">
             Latest Transactions
           </h2>
         </div>
@@ -74,9 +74,9 @@ const LatestTransactionTable = () => {
 
       {/* Error state */}
       {error && (
-        <div className="text-center py-8 text-rose-500/90 text-sm bg-rose-500/5 border border-rose-500/10 rounded-xl p-4">
+        <div className="text-center py-8 text-rose-600 dark:text-rose-400 text-sm bg-rose-50 dark:bg-rose-500/5 border border-rose-200 dark:border-rose-500/10 rounded-xl p-4">
           <p className="font-semibold">Failed to load transactions</p>
-          <p className="text-xs text-rose-500/60 mt-1">{error.message}</p>
+          <p className="text-xs text-rose-500/70 mt-1">{error.message}</p>
         </div>
       )}
 
@@ -85,13 +85,13 @@ const LatestTransactionTable = () => {
         !error &&
         (!data?.data?.transactions || data.data.transactions.length === 0) && (
           <div className="flex flex-col items-center justify-center py-12 text-center animate-fade-in">
-            <div className="w-12 h-12 rounded-full bg-slate-950 flex items-center justify-center text-slate-600 mb-3 border border-slate-800/50">
+            <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-950 flex items-center justify-center text-slate-400 dark:text-slate-600 mb-3 border border-slate-200 dark:border-slate-800/50">
               <IconInbox size={22} />
             </div>
-            <p className="text-sm font-semibold text-slate-400">
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-400">
               No activity yet
             </p>
-            <p className="text-xs text-slate-500 mt-1 max-w-[200px]">
+            <p className="text-xs text-slate-500 mt-1 max-w-[200px] font-medium">
               Use the Quick Log bar above to record your first transaction!
             </p>
           </div>
@@ -102,22 +102,22 @@ const LatestTransactionTable = () => {
         !error &&
         data?.data?.transactions &&
         data.data.transactions.length > 0 && (
-          <div className="space-y-1 divide-y divide-slate-800/30">
+          <div className="space-y-1 divide-y divide-slate-100 dark:divide-slate-800/30">
             {data.data.transactions.slice(0, 5).map((transaction) => {
               const isExpense = transaction.type === "expense";
               const categoryMeta = getCategoryMeta(transaction.category);
               return (
                 <div
                   key={transaction._id}
-                  className="flex items-center justify-between py-3 px-1 hover:bg-slate-800/35 -mx-1 rounded-xl transition-all group duration-200"
+                  className="flex items-center justify-between py-3 px-2 hover:bg-slate-50/80 dark:hover:bg-slate-800/35 -mx-1 rounded-xl transition-all group duration-200"
                 >
                   {/* Left part: Icon & Details */}
                   <div className="flex items-center gap-3.5">
                     <div
                       className={`w-10 h-10 rounded-xl flex items-center justify-center transition-transform group-hover:scale-[1.03] ${
                         isExpense
-                          ? "bg-rose-500/10 text-rose-400 border border-rose-500/10"
-                          : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/10"
+                          ? "bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-500/10"
+                          : "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/10"
                       }`}
                     >
                       {isExpense ? (
@@ -129,14 +129,14 @@ const LatestTransactionTable = () => {
 
                     <div className="text-left space-y-0.5">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="text-sm font-bold text-slate-200 group-hover:text-white transition-colors capitalize truncate max-w-[180px] sm:max-w-[280px]">
+                        <p className="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-slate-950 dark:group-hover:text-white transition-colors capitalize truncate max-w-[180px] sm:max-w-[280px]">
                           {transaction.description ||
                             (isExpense ? "Expense" : "Income")}
                         </p>
                         {/* Category Badge */}
                         <span className={`text-[10px] px-2 py-0.5 rounded-md font-semibold border flex items-center gap-1 ${categoryMeta.badgeBg}`}>
                           <span>{categoryMeta.icon}</span>
-                          <span>{transaction.category || "Other"}</span>
+                          <span className="text-slate-800 dark:text-slate-200">{transaction.category || "Other"}</span>
                         </span>
                       </div>
                       <p className="text-[10px] text-slate-500 font-medium">
@@ -149,7 +149,7 @@ const LatestTransactionTable = () => {
                   <div className="text-right pl-4">
                     <span
                       className={`text-sm font-extrabold tracking-tight ${
-                        isExpense ? "text-rose-400" : "text-emerald-400"
+                        isExpense ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"
                       }`}
                     >
                       {isExpense ? "-" : "+"} {formatAmount(transaction.amount)}

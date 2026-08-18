@@ -1,17 +1,16 @@
 import React from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import {
-  IconTrendingUp,
   IconLogout,
   IconLayoutDashboard,
   IconWallet,
   IconChartPie,
-  IconSettings,
   IconSun,
   IconMoon,
 } from "@tabler/icons-react";
 import useAuthStore from "../hooks/useAuthStore";
 import { useAppStore } from "../store/useAppStore";
+import HisabLogo from "./HisabLogo";
 
 export function DashboardNavbar() {
   const navigate = useNavigate();
@@ -38,43 +37,44 @@ export function DashboardNavbar() {
   const pathname = location.pathname;
 
   return (
-    <header className="relative z-10 border-b border-slate-500/10 bg-slate-950/20 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+    <header className="relative z-10 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/70 dark:bg-slate-950/40 backdrop-blur-md transition-colors duration-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 sm:py-4 flex items-center justify-between">
         {/* Logo */}
         <Link
           to={isAuthenticated ? "/dashboard" : "/"}
-          className="flex items-center gap-2 group"
+          className="flex items-center group cursor-pointer"
         >
-          <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-violet-600 to-cyan-500 flex items-center justify-center text-white shadow-lg group-hover:scale-105 transition-transform">
-            <IconTrendingUp size={20} className="stroke-[2.5]" />
-          </div>
-          <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-            FinFlow
-          </span>
+          <HisabLogo size="md" />
         </Link>
 
         {/* Navigation Links */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-400">
+        <nav className="hidden md:flex items-center gap-2 text-sm font-semibold">
           <Link
             to="/dashboard"
-            className={`hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
-              pathname === "/dashboard" ? "text-white bg-slate-500/10 font-bold" : ""
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+              pathname === "/dashboard"
+                ? "text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800/70 shadow-xs font-bold"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/40"
             }`}
           >
             <IconLayoutDashboard size={16} /> Overview
           </Link>
           <Link
             to="/all-transactions"
-            className={`hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
-              pathname === "/all-transactions" ? "text-white bg-slate-500/10 font-bold" : ""
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+              pathname === "/all-transactions"
+                ? "text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800/70 shadow-xs font-bold"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/40"
             }`}
           >
             <IconWallet size={16} /> All Transactions
           </Link>
           <Link
             to="/analytics"
-            className={`hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
-              pathname === "/analytics" ? "text-white bg-slate-500/10 font-bold" : ""
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
+              pathname === "/analytics"
+                ? "text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800/70 shadow-xs font-bold"
+                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-slate-800/40"
             }`}
           >
             <IconChartPie size={16} /> Analytics
@@ -82,32 +82,32 @@ export function DashboardNavbar() {
         </nav>
 
         {/* Action buttons */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3 sm:gap-4">
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-lg border border-slate-500/10 hover:bg-slate-500/5 transition-all text-slate-400 hover:text-slate-100"
+            className="p-2 rounded-xl border border-slate-200 dark:border-slate-800/80 bg-white/80 dark:bg-slate-900/60 hover:bg-slate-100 dark:hover:bg-slate-800/60 text-slate-700 dark:text-slate-300 transition-all cursor-pointer shadow-xs"
             title="Toggle Theme"
           >
-            {isDark ? <IconSun size={18} /> : <IconMoon size={18} />}
+            {isDark ? <IconSun size={17} className="text-amber-400" /> : <IconMoon size={17} className="text-indigo-600" />}
           </button>
 
           {/* User Badge */}
-          <div className="hidden sm:flex items-center gap-2 border-l border-slate-800 pl-4">
-            <div className="w-8 h-8 rounded-full bg-violet-600 flex items-center justify-center font-bold text-white text-sm">
+          <div className="hidden sm:flex items-center gap-2.5 border-l border-slate-200 dark:border-slate-800 pl-4">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center font-bold text-white text-xs shadow-sm">
               {userInitials}
             </div>
             <div className="text-left">
-              <div className="text-xs font-semibold text-white">{userName}</div>
-              <div className="text-[10px] text-slate-500">Premium Member</div>
+              <div className="text-xs font-bold text-slate-900 dark:text-white">{userName}</div>
+              <div className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">Personal Khata</div>
             </div>
           </div>
 
           {/* Logout Button */}
           <button
             onClick={handleLogout}
-            className="px-3.5 py-2 rounded-lg border border-rose-500/20 bg-rose-500/5 text-rose-400 hover:bg-rose-500 hover:text-white font-semibold text-xs transition-all flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-1.5 rounded-xl border border-rose-200 dark:border-rose-500/20 bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-600 hover:text-white dark:hover:bg-rose-500 dark:hover:text-white font-semibold text-xs transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
           >
-            <IconLogout size={16} />
+            <IconLogout size={15} />
             <span>Log Out</span>
           </button>
         </div>
@@ -115,3 +115,5 @@ export function DashboardNavbar() {
     </header>
   );
 }
+
+export default DashboardNavbar;

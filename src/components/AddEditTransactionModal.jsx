@@ -8,7 +8,6 @@ import {
   IconTrendingDown,
   IconTrendingUp,
   IconSparkles,
-  IconTag,
   IconPlus,
 } from "@tabler/icons-react";
 import { ControlledInput } from "./controlled";
@@ -16,55 +15,49 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { addTransaction } from "../api/transactionAPIs";
 import Drawer from "@mui/material/Drawer";
 import { CATEGORIES, autoCategorize } from "../utils/autoCategorizer";
+import { useAppStore } from "../store/useAppStore";
 
 // Form Validation Schema using Zod
 const transactionSchema = z.object({
+  description: z
+    .string()
+    .min(1, "Please provide a description or merchant name")
+    .max(120, "Description must be under 120 characters"),
+  amount: z
+    .number({ invalid_type_error: "Amount is required and must be a number" })
+    .positive("Amount must be greater than zero"),
   type: z.enum(["income", "expense"], {
-    required_error: "Transaction type is required",
+    errorMap: () => ({ message: "Type must be either income or expense" }),
   }),
-  category: z.enum([
-    "Food",
-    "Transport",
-    "Shopping",
-    "Entertainment",
-    "Bills",
-    "Health",
-    "Education",
-    "Salary",
-    "Freelance",
-    "Investment",
-    "Gift",
-    "Other",
-  ], {
-    required_error: "Category is required",
-  }),
-  amount: z.coerce
-    .number({ invalid_type_error: "Amount must be a number" })
-    .positive("Amount must be greater than 0"),
-  description: z.string().min(1, "Please specify what this transaction was for"),
+  category: z.string().min(1, "Please select a category"),
+  date: z.string().optional(),
 });
 
 /**
- * AddEditTransactionModal component
- * Fast transaction recording with real-time auto-categorization,
- * automated timestamping, and quick denomination chips.
+ * AddEditTransactionModal Component
+ * Full-form drawer with intelligent real-time auto-categorization and dual-theme styles.
  */
 const AddEditTransactionModal = ({
   isOpen,
   onClose,
-  transaction,
+  transaction = null,
   onSubmit,
 }) => {
+  const queryClient = useQueryClient();
+  const { theme } = useAppStore();
+  const isDark = theme === "dark";
+
   const [isManualCategory, setIsManualCategory] = useState(false);
   const [isManualType, setIsManualType] = useState(false);
 
   const methods = useForm({
     resolver: zodResolver(transactionSchema),
     defaultValues: {
+      description: "",
+      amount: "",
       type: "expense",
       category: "Other",
-      amount: "",
-      description: "",
+      date: new Date().toISOString().split("T")[0],
     },
   });
 
@@ -76,14 +69,41 @@ const AddEditTransactionModal = ({
     formState: { errors, isSubmitting },
   } = methods;
 
-  const currentType = watch("type");
-  const currentCategory = watch("category");
   const currentDescription = watch("description");
+  const currentCategory = watch("category");
+  const currentType = watch("type");
   const currentAmount = watch("amount");
 
-  // Real-time Fuse.js auto-categorization as user types
+  // Populate data if editing an existing transaction
   useEffect(() => {
-    if (!isOpen || transaction) return;
+    if (transaction) {
+      reset({
+        description: transaction.description || "",
+        amount: transaction.amount || "",
+        type: transaction.type || "expense",
+        category: transaction.category || "Other",
+        date: transaction.date
+          ? new Date(transaction.date).toISOString().split("T")[0]
+          : new Date().toISOString().split("T")[0],
+      });
+      setIsManualCategory(true);
+      setIsManualType(true);
+    } else {
+      reset({
+        description: "",
+        amount: "",
+        type: "expense",
+        category: "Other",
+        date: new Date().toISOString().split("T")[0],
+      });
+      setIsManualCategory(false);
+      setIsManualType(false);
+    }
+  }, [transaction, reset, isOpen]);
+
+  // Real-time auto-categorization on description change
+  useEffect(() => {
+    if (transaction) return; // Skip if editing
     if (!currentDescription || !currentDescription.trim()) {
       if (!isManualCategory) setValue("category", "Other");
       if (!isManualType) setValue("type", "expense");
@@ -91,68 +111,45 @@ const AddEditTransactionModal = ({
     }
 
     const prediction = autoCategorize(currentDescription);
+
     if (!isManualCategory && prediction.isAutoDetected) {
       setValue("category", prediction.category);
     }
+
     if (!isManualType && prediction.isAutoDetected) {
       setValue("type", prediction.type);
     }
-  }, [currentDescription, isManualCategory, isManualType, setValue, isOpen, transaction]);
+  }, [currentDescription, isManualCategory, isManualType, setValue, transaction]);
 
-  // Reset form values when transaction or modal visibility changes
-  useEffect(() => {
-    if (isOpen) {
-      setIsManualCategory(false);
-      setIsManualType(false);
-      if (transaction) {
-        reset({
-          type: transaction.type || "expense",
-          category: transaction.category || "Other",
-          amount: transaction.amount || "",
-          description: transaction.description || "",
-        });
-      } else {
-        reset({
-          type: "expense",
-          category: "Other",
-          amount: "",
-          description: "",
-        });
-      }
-    }
-  }, [transaction, isOpen, reset]);
-
-  // Escape key handler to close the modal
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.key === "Escape" && isOpen) {
-        onClose();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
-
-  const queryClient = useQueryClient();
-
-  const addTransactionMutation = useMutation({
-    mutationFn: (val) => addTransaction(val),
-    onSuccess: () => {
+  // Mutation to save transaction
+  const mutation = useMutation({
+    mutationFn: async (data) => {
+      return await addTransaction(data);
+    },
+    onSuccess: (savedData) => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["allTrans"] });
       queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      if (onSubmit) onSubmit(savedData);
       onClose();
+      reset();
     },
-    onError: (err) => console.log(err),
+    onError: (error) => {
+      console.error("Failed to save transaction:", error);
+    },
   });
 
-  const { isPending } = addTransactionMutation;
+  const { isPending } = mutation;
 
-  const onSubmitHandler = (values) => {
-    if (onSubmit) {
-      addTransactionMutation.mutate(values);
+  const onSubmitHandler = (data) => {
+    const payload = {
+      ...data,
+      amount: parseFloat(data.amount),
+    };
+    if (onSubmit && typeof onSubmit === "function") {
+      mutation.mutate(payload);
     } else {
-      onClose();
+      mutation.mutate(payload);
     }
   };
 
@@ -175,14 +172,18 @@ const AddEditTransactionModal = ({
           style: { backgroundColor: "rgba(2, 6, 23, 0.5)" },
         },
         paper: {
-          className: "w-full max-w-md bg-slate-900! border-l border-slate-800/80! p-6 shadow-2xl flex flex-col h-full overflow-y-auto text-white relative",
-          style: { backgroundColor: "#0f172a", color: "#fff", borderColor: "#1e293b" },
+          className: "w-full max-w-md bg-white! dark:bg-slate-900! border-l border-slate-200 dark:border-slate-800/80! p-6 shadow-2xl flex flex-col h-full overflow-y-auto text-slate-900 dark:text-white relative transition-colors duration-200",
+          style: {
+            backgroundColor: isDark ? "#0f172a" : "#ffffff",
+            color: isDark ? "#ffffff" : "#0f172a",
+            borderColor: isDark ? "#1e293b" : "#e2e8f0",
+          },
         },
       }}
     >
       {/* Decorative Top Glow */}
       <div
-        className={`absolute -top-16 left-1/2 -translate-x-1/2 w-64 h-32 rounded-full blur-[70px] opacity-40 pointer-events-none transition-colors duration-500 ${
+        className={`absolute -top-16 left-1/2 -translate-x-1/2 w-64 h-32 rounded-full blur-[70px] opacity-20 dark:opacity-40 pointer-events-none transition-colors duration-500 ${
           currentType === "expense" ? "bg-rose-500" : "bg-emerald-500"
         }`}
       />
@@ -190,7 +191,7 @@ const AddEditTransactionModal = ({
       {/* Close Button */}
       <button
         onClick={onClose}
-        className="absolute top-4 right-4 p-2 rounded-xl border border-slate-800 bg-slate-950 text-slate-400 hover:text-slate-100 hover:bg-slate-800 transition-all cursor-pointer"
+        className="absolute top-4 right-4 p-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all cursor-pointer"
         title="Close modal"
       >
         <IconX size={18} />
@@ -198,19 +199,19 @@ const AddEditTransactionModal = ({
 
       {/* Modal Header */}
       <div className="mb-6">
-        <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
+        <h2 className="text-xl font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
           <span
             className={`p-2 rounded-xl ${
               isEditMode
-                ? "bg-violet-500/10 text-violet-400 border border-violet-500/20"
-                : "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                ? "bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 border border-violet-200 dark:border-violet-500/20"
+                : "bg-cyan-50 dark:bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-200 dark:border-cyan-500/20"
             }`}
           >
             <IconCoin size={20} />
           </span>
           {isEditMode ? "Edit Transaction" : "New Transaction"}
         </h2>
-        <p className="text-xs text-slate-400 mt-1">
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-medium">
           {isEditMode
             ? "Update transaction details."
             : "Quickly record a financial movement (auto-timestamped to now)."}
@@ -222,7 +223,7 @@ const AddEditTransactionModal = ({
         <form onSubmit={handleSubmit(onSubmitHandler)} className="space-y-5">
           {/* Transaction Type Selector */}
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+            <label className="text-xs font-semibold text-slate-700 dark:text-slate-400 uppercase tracking-wider block">
               Transaction Type
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -233,18 +234,18 @@ const AddEditTransactionModal = ({
                   setValue("type", "expense");
                   setIsManualType(true);
                 }}
-                className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-semibold transition-all cursor-pointer select-none ${
+                className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-sm font-semibold transition-all cursor-pointer select-none ${
                   currentType === "expense"
-                    ? "bg-rose-500/15 border-rose-500/40 text-rose-400 ring-2 ring-rose-500/20 shadow-lg shadow-rose-500/10"
-                    : "bg-slate-950 border-slate-800 text-slate-500 hover:text-slate-300 hover:bg-slate-900"
+                    ? "bg-rose-50 dark:bg-rose-500/15 border-rose-300 dark:border-rose-500/40 text-rose-600 dark:text-rose-400 ring-2 ring-rose-500/20 shadow-xs"
+                    : "bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-500 hover:text-slate-900 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900"
                 }`}
               >
                 <IconTrendingDown
                   size={18}
                   className={
                     currentType === "expense"
-                      ? "text-rose-400"
-                      : "text-slate-500"
+                      ? "text-rose-600 dark:text-rose-400"
+                      : "text-slate-400 dark:text-slate-500"
                   }
                 />
                 <span>Expense</span>
@@ -257,18 +258,18 @@ const AddEditTransactionModal = ({
                   setValue("type", "income");
                   setIsManualType(true);
                 }}
-                className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl border text-sm font-semibold transition-all cursor-pointer select-none ${
+                className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border text-sm font-semibold transition-all cursor-pointer select-none ${
                   currentType === "income"
-                    ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-400 ring-2 ring-emerald-500/20 shadow-lg shadow-emerald-500/10"
-                    : "bg-slate-950 border-slate-800 text-slate-500 hover:text-slate-300 hover:bg-slate-900"
+                    ? "bg-emerald-50 dark:bg-emerald-500/15 border-emerald-300 dark:border-emerald-500/40 text-emerald-600 dark:text-emerald-400 ring-2 ring-emerald-500/20 shadow-xs"
+                    : "bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-500 hover:text-slate-900 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900"
                 }`}
               >
                 <IconTrendingUp
                   size={18}
                   className={
                     currentType === "income"
-                      ? "text-emerald-400"
-                      : "text-slate-500"
+                      ? "text-emerald-600 dark:text-emerald-400"
+                      : "text-slate-400 dark:text-slate-500"
                   }
                 />
                 <span>Income</span>
@@ -284,12 +285,12 @@ const AddEditTransactionModal = ({
           {/* Streamlined Single Text Field */}
           <div className="space-y-1.5 w-full">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-400 uppercase tracking-wider block">
                 What was this for?
               </label>
               {currentCategoryMeta && currentCategory !== "Other" && (
-                <span className="text-[11px] font-semibold text-violet-400 flex items-center gap-1">
-                  <IconSparkles size={12} className="text-amber-400" />
+                <span className="text-[11px] font-semibold text-violet-600 dark:text-violet-400 flex items-center gap-1">
+                  <IconSparkles size={12} className="text-amber-500" />
                   Auto-tagged: {currentCategory}
                 </span>
               )}
@@ -322,7 +323,7 @@ const AddEditTransactionModal = ({
                   key={val}
                   type="button"
                   onClick={() => handleQuickAmount(val)}
-                  className="px-2.5 py-1 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 text-[11px] font-bold text-slate-400 hover:text-white transition-all cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-950 hover:bg-slate-200 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 text-[11px] font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer"
                 >
                   +{val}
                 </button>
@@ -333,7 +334,7 @@ const AddEditTransactionModal = ({
           {/* Category Chips Selector */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-400 uppercase tracking-wider block">
                 Category
               </label>
               <span className="text-[11px] text-slate-500">
@@ -341,7 +342,7 @@ const AddEditTransactionModal = ({
               </span>
             </div>
 
-            <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto p-1 bg-slate-950/60 rounded-xl border border-slate-800/80">
+            <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto p-1.5 bg-slate-50 dark:bg-slate-950/60 rounded-xl border border-slate-200 dark:border-slate-800/80">
               {CATEGORIES.map((cat) => {
                 const isSelected = currentCategory === cat.id;
                 return (
@@ -354,8 +355,8 @@ const AddEditTransactionModal = ({
                     }}
                     className={`flex flex-col items-center justify-center p-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
                       isSelected
-                        ? "bg-violet-600/20 border-violet-500 text-white shadow-md shadow-violet-500/10 scale-[1.02]"
-                        : "bg-slate-950/80 border-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-900"
+                        ? "bg-violet-100 dark:bg-violet-600/20 border-violet-300 dark:border-violet-500 text-violet-900 dark:text-white shadow-xs scale-[1.02]"
+                        : "bg-white dark:bg-slate-950/80 border-slate-200 dark:border-slate-800/80 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-900"
                     }`}
                   >
                     <span className="text-lg mb-1">{cat.icon}</span>
@@ -376,14 +377,14 @@ const AddEditTransactionModal = ({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 border border-slate-800 hover:bg-slate-800 text-slate-300 font-semibold rounded-xl transition-all cursor-pointer text-center text-sm"
+              className="flex-1 py-2.5 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold rounded-xl transition-all cursor-pointer text-center text-sm"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || isPending}
-              className={`flex-1 py-3 text-white font-bold rounded-xl shadow-lg transition-all cursor-pointer text-sm flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2.5 text-white font-bold rounded-xl shadow-md transition-all cursor-pointer text-sm flex items-center justify-center gap-1.5 ${
                 currentType === "expense"
                   ? "bg-gradient-to-r from-rose-600 to-orange-500 hover:from-rose-500 hover:to-orange-400 shadow-rose-600/20"
                   : "bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 shadow-emerald-600/20"
