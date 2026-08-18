@@ -54,6 +54,7 @@ export default function QuickTransactionBar({ onTransactionAdded }) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["allTrans"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
       
       // Visual feedback
       setJustAdded(true);

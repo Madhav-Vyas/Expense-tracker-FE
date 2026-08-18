@@ -1,5 +1,5 @@
 import React from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import {
   IconTrendingUp,
   IconLogout,
@@ -15,6 +15,7 @@ import { useAppStore } from "../store/useAppStore";
 
 export function DashboardNavbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   const logout = useAuthStore((state) => state.logout);
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -27,14 +28,14 @@ export function DashboardNavbar() {
 
   const isDark = theme === "dark";
   const userName = user?.name || "John Doe";
-  const realUser = user;
-  console.log(realUser);
   const userInitials = userName
     .split(" ")
     .map((n) => n[0])
     .join("")
     .toUpperCase()
     .slice(0, 2);
+
+  const pathname = location.pathname;
 
   return (
     <header className="relative z-10 border-b border-slate-500/10 bg-slate-950/20 backdrop-blur-md">
@@ -54,30 +55,30 @@ export function DashboardNavbar() {
 
         {/* Navigation Links */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-slate-400">
-          <a
-            onClick={() => navigate("/dashboard")}
-            className="text-white hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-500/5"
+          <Link
+            to="/dashboard"
+            className={`hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+              pathname === "/dashboard" ? "text-white bg-slate-500/10 font-bold" : ""
+            }`}
           >
             <IconLayoutDashboard size={16} /> Overview
-          </a>
-          <a
-            onClick={() => navigate("/all-transactions")}
-            className="hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors"
+          </Link>
+          <Link
+            to="/all-transactions"
+            className={`hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+              pathname === "/all-transactions" ? "text-white bg-slate-500/10 font-bold" : ""
+            }`}
           >
             <IconWallet size={16} /> All Transactions
-          </a>
-          <a
-            href="#analytics"
-            className="hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors"
+          </Link>
+          <Link
+            to="/analytics"
+            className={`hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+              pathname === "/analytics" ? "text-white bg-slate-500/10 font-bold" : ""
+            }`}
           >
             <IconChartPie size={16} /> Analytics
-          </a>
-          <a
-            href="#settings"
-            className="hover:text-white flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors"
-          >
-            <IconSettings size={16} /> Settings
-          </a>
+          </Link>
         </nav>
 
         {/* Action buttons */}

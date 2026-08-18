@@ -1,4 +1,5 @@
 import axios from "axios";
+import useAuthStore from "../hooks/useAuthStore";
 
 const API_URL = "http://localhost:5000/api/v1";
 
@@ -11,6 +12,21 @@ export const axiosInstance = axios.create({
   headers,
   withCredentials: true, // sending cookies to backend
 });
+
+// Request interceptor to append JWT token in Authorization header
+axiosInstance.interceptors.request.use(
+  (config) => {
+    const token = useAuthStore.getState().token;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
 const addTransaction = async (transactionData) => {
   try {
     const response = await axiosInstance.post("/transaction", transactionData);
@@ -20,6 +36,7 @@ const addTransaction = async (transactionData) => {
     throw error;
   }
 };
+
 const getAllTransactions = async (params) => {
   try {
     const response = await axiosInstance.get("/transaction", { params });
@@ -30,5 +47,41 @@ const getAllTransactions = async (params) => {
   }
 };
 
-export { addTransaction,getAllTransactions };
+const getAnalyticsSummary = async (params) => {
+  try {
+    const response = await axiosInstance.get("/analytics/summary", { params });
+    return response.data;
+  } catch (error) {
+    console.error("Getting analytics summary failed:", error);
+    throw error;
+  }
+};
+
+const getAnalyticsLifestyle = async (params) => {
+  try {
+    const response = await axiosInstance.get("/analytics/lifestyle", { params });
+    return response.data;
+  } catch (error) {
+    console.error("Getting analytics lifestyle failed:", error);
+    throw error;
+  }
+};
+
+const getAnalyticsForecast = async (params) => {
+  try {
+    const response = await axiosInstance.get("/analytics/forecast", { params });
+    return response.data;
+  } catch (error) {
+    console.error("Getting analytics forecast failed:", error);
+    throw error;
+  }
+};
+
+export {
+  addTransaction,
+  getAllTransactions,
+  getAnalyticsSummary,
+  getAnalyticsLifestyle,
+  getAnalyticsForecast,
+};
 

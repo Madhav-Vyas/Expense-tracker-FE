@@ -13,6 +13,7 @@ import Signup from "./pages/prelogin/auth/Signup";
 import PostloginLayout from "./layouts/PostloginLayout";
 import useAuthStore from "./hooks/useAuthStore";
 import AllTransactions from "./pages/postlogin/AllTransactions/index.jsx";
+import AnalyticsPage from "./pages/postlogin/Analytics/index.jsx";
 
 const ProtectedRoutes = () => {
   const token = useAuthStore((state) => state.token);
@@ -29,6 +30,7 @@ function App() {
         <Route element={<ProtectedRoutes />}>
           <Route element={<PostloginLayout />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/analytics" element={<AnalyticsPage />} />
             <Route path="/all-transactions" element={<AllTransactions />} />
           </Route>
         </Route>

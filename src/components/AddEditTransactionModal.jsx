@@ -140,6 +140,7 @@ const AddEditTransactionModal = ({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
       queryClient.invalidateQueries({ queryKey: ["allTrans"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
       onClose();
     },
     onError: (err) => console.log(err),
