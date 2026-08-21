@@ -99,6 +99,14 @@ function Login() {
               </p>
             </div>
 
+            {loginMutation.isError && (
+              <div className="p-3.5 bg-red-500/10 border border-red-500/30 rounded-xl text-red-600 dark:text-red-400 text-xs font-semibold text-center animate-fade-in">
+                {loginMutation.error?.response?.data?.message ||
+                  loginMutation.error?.message ||
+                  "Login failed. Please check your credentials or try again."}
+              </div>
+            )}
+
             <FormProvider {...methods}>
               <form
                 className="space-y-4"

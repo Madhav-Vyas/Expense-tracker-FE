@@ -104,6 +104,14 @@ function Signup() {
               </p>
             </div>
 
+            {signupMutation.isError && (
+              <div className="p-3.5 bg-red-500/10 border border-red-500/30 rounded-xl text-red-600 dark:text-red-400 text-xs font-semibold text-center animate-fade-in">
+                {signupMutation.error?.response?.data?.message ||
+                  signupMutation.error?.message ||
+                  "Signup failed. Please check your information or try again."}
+              </div>
+            )}
+
             <FormProvider {...methods}>
               <form
                 className="space-y-4"
