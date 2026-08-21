@@ -1,12 +1,18 @@
 # Vercel Deployment Guide (Frontend & Backend)
 
-This guide walks you through deploying both the **Express Backend** and **React/Vite Frontend** to Vercel.
+This guide walks you through deploying both the **Express Backend** and **React/Vite Frontend** to Vercel and resolving any CORS or serverless connection issues.
 
 ---
 
 ## 📋 Prerequisites
+
 1. A free **[Vercel Account](https://vercel.com/signup)**.
-2. A free **[MongoDB Atlas Database](https://www.mongodb.com/atlas/database)** (Cloud MongoDB connection string, since Vercel serverless functions cannot connect to `localhost:27017`).
+2. A free **[MongoDB Atlas Database](https://www.mongodb.com/atlas/database)**.
+
+> [!IMPORTANT]
+> **MongoDB Atlas Network Access (Crucial)**:
+> In your MongoDB Atlas dashboard, go to **Network Access** -> **Add IP Address** -> select **Allow Access from Anywhere (`0.0.0.0/0`)**.
+> Since Vercel executes serverless functions on dynamic IP addresses, without `0.0.0.0/0` MongoDB Atlas will reject connections and cause `FUNCTION_INVOCATION_FAILED` errors on Vercel.
 
 ---
 
@@ -41,7 +47,7 @@ Follow the prompt in your browser to authenticate your account.
    - **Want to modify settings?** `N`
 
 3. Set your Production Environment Variables on Vercel:
-   Go to your project on [vercel.com](https://vercel.com/dashboard) -> **Settings** -> **Environment Variables**, and add:
+   Go to your backend project on [vercel.com](https://vercel.com/dashboard) -> **Settings** -> **Environment Variables**, and add:
    - `MONGODB_URI`: `mongodb+srv://<username>:<password>@cluster0.xxx.mongodb.net/expense_tracker?retryWrites=true&w=majority`
    - `JWT_SECRET`: `your-secure-random-jwt-secret-key-123456`
    - `JWT_EXPIRES_IN`: `90d`
@@ -54,8 +60,9 @@ Follow the prompt in your browser to authenticate your account.
    ```
    *Copy your deployed backend URL (e.g. `https://expense-tracker-backend.vercel.app`).*
 
-5. Verify backend is healthy by visiting in your browser:
-   `https://<your-backend-app>.vercel.app/api/status`
+5. Verify backend is healthy:
+   - Visit in your browser: `https://<your-backend-app>.vercel.app/api/status`
+   - You should see `{"status":"ok", "message":"Expense Tracker Backend API is operational", "database":{"status":"Connected", "connected":true}}`.
 
 ---
 
@@ -81,7 +88,7 @@ Follow the prompt in your browser to authenticate your account.
 
 3. Set your Production Environment Variable on Vercel:
    Go to your frontend project on [vercel.com](https://vercel.com/dashboard) -> **Settings** -> **Environment Variables**, and add:
-   - `VITE_API_URL`: `https://<your-backend-app>.vercel.app/api/v1`
+   - `VITE_API_URL`: `https://<your-backend-app>.vercel.app/api/v1` *(Note: without trailing slash)*
 
 4. Deploy to Production:
    ```bash
@@ -119,9 +126,11 @@ If your project is pushed to a GitHub repository, you can deploy both directly f
 
 ---
 
-## 🛠️ Configurations Implemented
-1. **Backend Serverless Routing (`Expense Tracker BE/vercel.json`)**: Configured `@vercel/node` to route all endpoints to `server.js`.
-2. **Database Connection Reuse (`Expense Tracker BE/server.js`)**: Implemented cached connection pooling (`connectDB`) to prevent database connection exhaustion in serverless environments.
-3. **CORS Flexibility (`Expense Tracker BE/server.js`)**: Automatically allows requests from `localhost`, `*.vercel.app` domains, and custom URLs.
-4. **Frontend SPA Rewrites (`Expense Tracker FE/vercel.json`)**: Added rewrite rules to `/index.html` so client-side routing (`/dashboard`, `/analytics`, `/all-transactions`) works on page refresh.
-5. **Dynamic API Configuration (`Expense Tracker FE/src/api/`)**: `authAPIs.js` and `transactionAPIs.js` now dynamically resolve `import.meta.env.VITE_API_URL`.
+## 🛠️ Architecture & CORS Handling
+
+1. **Universal CORS & Preflight (`server.js`)**: Dynamic origin reflection allowing all frontend clients while supporting `credentials: true`. Immediate 200 response on `OPTIONS` ensures preflights never timeout.
+2. **Serverless MongoDB Fail-Fast & Connection Reuse**: Cached DB pooling with strict timeout prevents serverless lambda timeouts (`FUNCTION_INVOCATION_FAILED`).
+3. **Dual-Route Mounting**: Endpoints are mounted on both `/api/v1` and `/v1` to seamlessly handle direct API calls and rewrite paths.
+4. **Cross-Origin Cookie Support (`authController.js`)**: Configured with `SameSite: "none"` and `Secure: true` in production environments for seamless cross-domain cookie handling.
+5. **Frontend SPA Routing (`vercel.json`)**: Configured with SPA rewrite rule so refreshing `/dashboard` or `/analytics` routes works seamlessly.
+

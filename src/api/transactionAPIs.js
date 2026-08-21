@@ -1,7 +1,8 @@
 import axios from "axios";
 import useAuthStore from "../hooks/useAuthStore";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
+const rawApiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api/v1";
+const API_URL = rawApiUrl.replace(/\/+$/, "");
 
 const headers = {
   "Content-Type": "application/json",
